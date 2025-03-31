@@ -1,38 +1,54 @@
 #include <Arduino.h>
-#include "LM35IC.h"
+#include "DHT11.h"
 
-uint8_t temperature_pin = A0;
-uint8_t humidity_pin = A1;
+uint8_t humidity_pin = 4;
 uint8_t light_pin = A2;
 
-double Ts = 1.0 * 1000.0;
+double Ts = 2.0 * 1000.0;
 double time = 0.0;
 
-using LM35::LM35IC;
-
-LM35IC temperature_sensor = LM35IC(temperature_pin);
+DHT11 sensor(humidity_pin);
 
 void setup() {
 
   Serial.begin(9600);
-  //Serial.print("Humidity (%)");
   //Serial.println("Light (lux)");
 
-  pinMode(temperature_pin, INPUT);
+  pinMode(humidity_pin, INPUT);
 
 }
 
 void loop() {
   
   double current_time = millis();
-  double temperature = 0.0;
 
   if(current_time - time >= Ts){
 
-    temperature = temperature_sensor.readTemp();
-    //temperature = analogRead(temperature_pin);
-    Serial.print("Temperature:");
-    Serial.println(temperature);
+    int temperature = 0;
+    int humidity = 0;
+
+    // Attempt to read the temperature and humidity values from the DHT11 sensor.
+    int result = sensor.readTemperatureHumidity(temperature, humidity);
+
+    // Check the results of the readings.
+    // If the reading is successful, print the temperature and humidity values.
+    // If there are errors, print the appropriate error messages.
+    if (result == 0) {
+        Serial.print("Temperature: ");
+        Serial.print(temperature);
+        Serial.print(" °C\tHumidity: ");
+        Serial.print(humidity);
+        Serial.println(" %");
+    } else {
+        // Print error message based on the error code.
+        Serial.println(DHT11::getErrorString(result));
+    }
+
+    //temperature = analogRead(A0);
+    //temperature = sensor.readTemperature();
+    //Serial.print("Temperature: ");
+    //Serial.print(temperature);
+    //Serial.println(" °C");
 
     time = current_time;
 
